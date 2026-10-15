@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "AgroDoctor AI",
+    "slug": "agrodoctor-ai",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AgroDoctor AI использует фото растений для ваших наблюдений.",
+          "cameraPermission": "AgroDoctor AI использует камеру для фотографирования растений."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AgroDoctor AI использует геолокацию для сохранения места наблюдения."
+        }
+      ],
+      "expo-status-bar",
+      "expo-font"
+    ],
+    "android": {
+      "package": "com.belyaev.agrodoctorai"
+    }
+  }
+}

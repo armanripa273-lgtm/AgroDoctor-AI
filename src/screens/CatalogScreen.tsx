@@ -1,0 +1,7 @@
+import { useNavigation } from '@react-navigation/native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { DiseaseCard } from '../components/DiseaseCard';
+import { diseases } from '../data/content';
+import { Disease } from '../types';
+export default function CatalogScreen() { const navigation = useNavigation<any>(); const render = ({ item }: { item: Disease }) => <DiseaseCard disease={item} onPress={() => navigation.navigate('Details', { title: item.name, icon: 'medical-outline', body: `Категория: ${item.category}\n\nПризнаки: ${item.symptoms}\n\nОбщие рекомендации: ${item.advice}\n\nИнформация носит справочный характер и не является диагнозом.` })} />; return <FlatList style={styles.screen} contentContainerStyle={styles.list} data={diseases} renderItem={render} keyExtractor={item => item.id} ItemSeparatorComponent={() => <View style={{ height: 11 }} />} ListHeaderComponent={<><Text style={styles.title}>Каталог болезней</Text><Text style={styles.subtitle}>Справочник симптомов и базовых мер ухода</Text></>} ListEmptyComponent={<Text style={styles.empty}>Записи каталога пока не добавлены.</Text>} />; }
+const styles = StyleSheet.create({ screen: { backgroundColor: 'rgba(245,248,241,.50)' }, list: { padding: 20, paddingBottom: 35 }, title: { fontSize: 28, fontWeight: '900', color: '#174734' }, subtitle: { color: '#697D70', marginTop: 6, marginBottom: 20, lineHeight: 20 }, empty: { textAlign: 'center', color: '#718277', marginTop: 40 } });
