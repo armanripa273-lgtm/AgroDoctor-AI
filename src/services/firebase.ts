@@ -1,7 +1,7 @@
 import { FirebaseError, getApp, getApps, initializeApp } from 'firebase/app';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FirebaseAuth from 'firebase/auth';
-import { Auth, createUserWithEmailAndPassword, getAuth, initializeAuth, Persistence, reload, sendEmailVerification, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { Auth, createUserWithEmailAndPassword, getAuth, initializeAuth, Persistence, reload, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBLFlcB2RJxw-p55cjqKlWYHIPU0tz_Zhg',
@@ -37,12 +37,25 @@ export async function registerAndSendVerification(email: string, password: strin
     return 'sent' as const;
   } catch (error) {
     if (!(error instanceof FirebaseError) || error.code !== 'auth/email-already-in-use') throw error;
-    const credential = await signInWithEmailAndPassword(auth, email, password);
+    let credential;
+    try {
+      credential = await signInWithEmailAndPassword(auth, email, password);
+    } catch (signInError) {
+      if (signInError instanceof FirebaseError && ['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found'].includes(signInError.code)) {
+        throw new Error('Этот email уже зарегистрирован, но пароль не подошёл. Нажмите «Забыли пароль?» и задайте новый пароль из письма.');
+      }
+      throw signInError;
+    }
     await reload(credential.user);
     if (credential.user.emailVerified) return 'verified' as const;
     await sendEmailVerification(credential.user);
     return 'sent' as const;
   }
+}
+
+export async function sendFirebasePasswordReset(email: string) {
+  if (!auth) throw new Error('Firebase ещё не настроен.');
+  await sendPasswordResetEmail(auth, email);
 }
 
 export async function verifyFirebaseEmail(email: string, password: string) {
