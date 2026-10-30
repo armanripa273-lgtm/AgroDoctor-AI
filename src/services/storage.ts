@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Observation, Plant } from '../types';
-const KEYS = { session: '@agro/session', plants: '@agro/plants', observations: '@agro/observations' };
+import { Observation, Plant, PlantReminder } from '../types';
+const KEYS = { session: '@agro/session', plants: '@agro/plants', observations: '@agro/observations', reminders: '@agro/reminders' };
 export type UserProfile = { login: string; email: string; displayName?: string };
 async function read<T>(key: string, fallback: T): Promise<T> { const raw = await AsyncStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; }
 export const getSession = async () => (await AsyncStorage.getItem(KEYS.session)) === 'true';
@@ -9,5 +9,10 @@ export const getProfile = () => read<UserProfile>('@agro/profile', { login: '', 
 export const saveProfile = async (profile: UserProfile) => { const existing = await getProfile(); const sameUser = existing.email.toLowerCase() === profile.email.toLowerCase(); const next = sameUser && existing.displayName ? { ...profile, displayName: existing.displayName } : profile; await AsyncStorage.setItem('@agro/profile', JSON.stringify(next)); };
 export const getPlants = () => read<Plant[]>(KEYS.plants, []);
 export const savePlant = async (plant: Plant) => { const all = await getPlants(); await AsyncStorage.setItem(KEYS.plants, JSON.stringify([plant, ...all])); };
+export const updatePlant = async (plantId: string, changes: Partial<Pick<Plant, 'name' | 'species' | 'location'>>) => { const all = await getPlants(); const updated = all.map(plant => plant.id === plantId ? { ...plant, ...changes } : plant); await AsyncStorage.setItem(KEYS.plants, JSON.stringify(updated)); if (changes.name) { const reminders = await getReminders(); await AsyncStorage.setItem(KEYS.reminders, JSON.stringify(reminders.map(item => item.plantId === plantId ? { ...item, plantName: changes.name } : item))); } return updated.find(plant => plant.id === plantId); };
+export const deletePlant = async (plantId: string) => { const [plants, observations] = await Promise.all([getPlants(), getObservations()]); await AsyncStorage.setItem(KEYS.plants, JSON.stringify(plants.filter(plant => plant.id !== plantId))); await AsyncStorage.setItem(KEYS.observations, JSON.stringify(observations.filter(observation => observation.plantId !== plantId))); };
 export const getObservations = () => read<Observation[]>(KEYS.observations, []);
 export const saveObservation = async (observation: Observation) => { const all = await getObservations(); await AsyncStorage.setItem(KEYS.observations, JSON.stringify([observation, ...all])); };
+export const getReminders = () => read<PlantReminder[]>(KEYS.reminders, []);
+export const saveReminder = async (reminder: PlantReminder) => { const all = await getReminders(); await AsyncStorage.setItem(KEYS.reminders, JSON.stringify([reminder, ...all])); };
+export const removeReminder = async (reminderId: string) => { const all = await getReminders(); await AsyncStorage.setItem(KEYS.reminders, JSON.stringify(all.filter(reminder => reminder.id !== reminderId))); };

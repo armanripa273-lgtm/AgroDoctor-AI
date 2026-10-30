@@ -8,6 +8,7 @@ export const services: Service[] = [
   { id: 'reminders', title: 'Напоминания', description: 'Полив и подкормка', icon: 'notifications-outline', color: '#FFE6E6', route: 'Details' },
   { id: 'map', title: 'Геолокация', description: 'Место наблюдения', icon: 'location-outline', color: '#DFF5F4', route: 'Details' },
   { id: 'catalog', title: 'Каталог болезней', description: 'Симптомы и меры', icon: 'library-outline', color: '#EDEBFF' }
+  ,{ id: 'chat', title: 'AI-чат', description: 'Вопросы и помощь по разделам', icon: 'chatbubble-ellipses-outline', color: '#DDF3E8' }
 ];
 export const diseases: Disease[] = [
   { id: 'late-blight', name: 'Фитофтороз', category: 'Грибковое', symptoms: 'Бурые пятна на листьях и плодах.', advice: 'Удалите поражённые части, уменьшите влажность и обратитесь к агроному.', color: '#FCE4E2', icon: 'bacteria-outline' },

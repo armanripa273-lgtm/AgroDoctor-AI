@@ -19,6 +19,7 @@
           "locationWhenInUsePermission": "AgroDoctor AI использует геолокацию для сохранения места наблюдения."
         }
       ],
+      "expo-notifications",
       "expo-status-bar",
       "expo-font"
     ],
