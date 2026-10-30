@@ -1,6 +1,6 @@
 import { Disease, Service } from '../types';
 export const services: Service[] = [
-  { id: 'diagnosis', title: 'Диагностика', description: 'Фото и симптомы', icon: 'scan-outline', color: '#DDF3E8', route: 'Details' },
+  { id: 'diagnosis', title: 'AI-анализ', description: 'Фото и симптомы', icon: 'scan-outline', color: '#DDF3E8' },
   { id: 'plants', title: 'Мои растения', description: 'Карточки и уход', icon: 'leaf-outline', color: '#E5F0FF' },
   { id: 'history', title: 'История', description: 'Наблюдения во времени', icon: 'calendar-outline', color: '#FFF0D6' },
   { id: 'compare', title: 'Сравнение фото', description: 'До и после', icon: 'images-outline', color: '#F2E9FF' },
