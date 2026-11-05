@@ -34,6 +34,7 @@ export default function HomeScreen() {
   useFocusEffect(useCallback(() => { void refreshCare(); }, [refreshCare]));
   const savedAnalyses = observations.filter(item => item.note.includes('AI-подсказка (не окончательный диагноз)')).length;
   return <ScrollView contentContainerStyle={styles.page}>
+    <View style={styles.brandHeader}><View style={styles.brandMark}><Ionicons name="leaf" size={21} color="#FFF" /></View><View style={styles.brandCopy}><Text style={styles.brandName}>AgroDoctor AI</Text><Text style={styles.brandCaption}>ПОЛЕВОЙ ДНЕВНИК</Text></View><Pressable onPress={() => navigation.navigate('Reminders')} style={styles.headerAction} accessibilityRole="button" accessibilityLabel="Открыть напоминания"><Ionicons name="notifications-outline" size={21} color={theme.colors.ink} /></Pressable></View>
     <UserGreeting style={styles.greeting} />
     <Text style={styles.title}>Как чувствуют себя{`\n`}ваши растения?</Text>
     <View style={styles.hero}><View style={styles.heroTop}><Text style={styles.heroTag}>GEMINI · ФОТОРАЗБОР</Text><Ionicons name="sunny-outline" size={27} color="#FFE18A" /></View><Text style={styles.heroTitle}>Посмотрите, что скрывают листья</Text><Text style={styles.heroText}>Снимок и заметки помогут заметить признаки проблем и получить возможные причины — AI-подсказка не заменяет диагноз специалиста.</Text><Pressable style={styles.heroButton} onPress={() => navigation.navigate('Diagnosis')}><Text style={styles.heroButtonText}>Проверить растение</Text><Ionicons name="arrow-forward" size={18} color="#633B12" /></Pressable></View>
@@ -54,33 +55,34 @@ export default function HomeScreen() {
 }
 function Stat({ value, label, accent }: { value: string; label: string; accent: string }) { return <View style={[styles.stat, { borderTopColor: accent }]}><Text style={styles.statNumber}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>; }
 const styles = StyleSheet.create({
-  page: { padding: 20, paddingBottom: 35, backgroundColor: 'rgba(255,252,240,.34)', flexGrow: 1 },
+  page: { padding: 20, paddingBottom: 35, backgroundColor: 'rgba(248,250,246,.34)', flexGrow: 1 },
+  brandHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 }, brandMark: { width: 42, height: 42, borderRadius: 14, backgroundColor: theme.colors.leafDeep, alignItems: 'center', justifyContent: 'center' }, brandCopy: { marginLeft: 10, flex: 1 }, brandName: { color: theme.colors.ink, fontSize: 17, fontWeight: '900', letterSpacing: -.2 }, brandCaption: { color: theme.colors.leaf, fontSize: 9, letterSpacing: 1.05, fontWeight: '900', marginTop: 2 }, headerAction: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.colors.line, backgroundColor: 'rgba(255,255,255,.88)', borderRadius: 14 },
   greeting: { color: '#65796C', fontWeight: '700', fontSize: 15 },
-  title: { color: '#183D2C', fontWeight: '900', fontSize: 30, lineHeight: 36, marginTop: 5, letterSpacing: -.5 },
-  hero: { backgroundColor: '#D95D40', borderRadius: 22, padding: 20, marginTop: 22, overflow: 'hidden' },
+  title: { color: theme.colors.ink, fontWeight: '900', fontSize: 30, lineHeight: 36, marginTop: 5, letterSpacing: -.5 },
+  hero: { backgroundColor: theme.colors.tomato, borderRadius: 22, padding: 20, marginTop: 22, overflow: 'hidden' },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroTag: { color: '#FFF2DE', fontSize: 10, fontWeight: '900', letterSpacing: 1, backgroundColor: 'rgba(103,48,29,.30)', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8 },
   heroTitle: { color: '#FFFDF4', fontSize: 23, lineHeight: 27, fontWeight: '900', marginTop: 18, maxWidth: 270 },
   heroText: { color: '#FFF0E4', lineHeight: 21, marginTop: 8, fontSize: 14 },
   heroButton: { flexDirection: 'row', alignItems: 'center', gap: 9, alignSelf: 'flex-start', paddingHorizontal: 15, paddingVertical: 12, borderRadius: 11, backgroundColor: '#FFE089', marginTop: 17, minHeight: 44 },
   heroButtonText: { color: '#633B12', fontWeight: '900' },
-  careCard: { backgroundColor: '#FFFEF8', borderWidth: 1, borderColor: '#E4E8D6', borderRadius: 18, padding: 16, marginTop: 14 },
+  careCard: { backgroundColor: theme.colors.paper, borderWidth: 1, borderColor: theme.colors.line, borderRadius: 18, padding: 16, marginTop: 14 },
   careHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  careIcon: { width: 38, height: 38, borderRadius: 13, backgroundColor: '#E7F0D4', justifyContent: 'center', alignItems: 'center' },
-  careTitle: { color: '#183D2C', fontWeight: '900', fontSize: 15 },
+  careIcon: { width: 38, height: 38, borderRadius: 13, backgroundColor: theme.colors.cucumberPale, justifyContent: 'center', alignItems: 'center' },
+  careTitle: { color: theme.colors.ink, fontWeight: '900', fontSize: 15 },
   careSubtitle: { color: '#748176', fontSize: 11, marginTop: 2 },
   refreshButton: { padding: 9, minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
   careLoading: { flexDirection: 'row', gap: 9, alignItems: 'center', paddingVertical: 14 },
   careSummary: { color: '#355744', fontWeight: '700', fontSize: 14, lineHeight: 21, marginTop: 13 },
   careBody: { color: '#52665A', fontSize: 12, lineHeight: 18, marginTop: 6 },
-  careAdvice: { color: '#24784E', fontSize: 12, fontWeight: '800', lineHeight: 18, marginTop: 5 },
+  careAdvice: { color: theme.colors.leaf, fontSize: 12, fontWeight: '800', lineHeight: 18, marginTop: 5 },
   careError: { color: '#A33C34', fontSize: 12, marginTop: 6 },
-  insight: { padding: 11, borderRadius: 12, marginTop: 10 }, insightAlert: { backgroundColor: '#FBE8E3' }, insightWatch: { backgroundColor: '#FFF1BC' }, insightOk: { backgroundColor: '#E7F0D4' },
-  insightHeading: { flexDirection: 'row', alignItems: 'center', gap: 7 }, insightPlant: { color: '#183D2C', fontSize: 13, fontWeight: '900', flex: 1 }, statusLabel: { color: '#69796D', fontSize: 9, fontWeight: '900' },
+  insight: { padding: 11, borderRadius: 12, marginTop: 10 }, insightAlert: { backgroundColor: theme.colors.dangerPale }, insightWatch: { backgroundColor: theme.colors.sunflowerPale }, insightOk: { backgroundColor: theme.colors.cucumberPale },
+  insightHeading: { flexDirection: 'row', alignItems: 'center', gap: 7 }, insightPlant: { color: theme.colors.ink, fontSize: 13, fontWeight: '900', flex: 1 }, statusLabel: { color: '#69796D', fontSize: 9, fontWeight: '900' },
   careDisclaimer: { color: '#7C887F', fontSize: 10, lineHeight: 15, marginTop: 12 },
-  sectionLine: { marginTop: 26, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, section: { color: '#183D2C', fontSize: 20, fontWeight: '900' }, link: { color: '#24784E', fontWeight: '900', paddingVertical: 8, paddingLeft: 12 },
-  stats: { flexDirection: 'row', gap: 10, marginTop: 12 }, stat: { flex: 1, padding: 13, backgroundColor: '#FFFEF8', borderRadius: 14, borderTopWidth: 4, borderColor: '#E4E8D6' }, statNumber: { color: '#183D2C', fontWeight: '900', fontSize: 24 }, statLabel: { color: '#6D8074', fontSize: 11, marginTop: 3 },
-  tip: { flexDirection: 'row', gap: 12, padding: 16, backgroundColor: '#FFF1BC', borderRadius: 16, marginTop: 20 }, tipIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFEF8' }, tipTitle: { color: '#73570C', fontWeight: '900' }, tipText: { color: '#6F5B28', lineHeight: 19, fontSize: 13, marginTop: 3 },
-  add: { flexDirection: 'row', gap: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: '#24784E', borderRadius: 13, padding: 15, marginTop: 22, minHeight: 52 }, addText: { color: '#FFF', fontWeight: '900', textAlign: 'center' },
-  chatButton: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FFFEF8', borderWidth: 1, borderColor: '#E4E8D6', borderRadius: 13, paddingHorizontal: 15, paddingVertical: 13, marginTop: 10, minHeight: 50 }, chatButtonText: { color: '#24784E', fontWeight: '900', flex: 1 },
+  sectionLine: { marginTop: 26, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, section: { color: theme.colors.ink, fontSize: 20, fontWeight: '900' }, link: { color: theme.colors.leaf, fontWeight: '900', paddingVertical: 8, paddingLeft: 12 },
+  stats: { flexDirection: 'row', gap: 10, marginTop: 12 }, stat: { flex: 1, padding: 13, backgroundColor: theme.colors.paper, borderRadius: 14, borderTopWidth: 4, borderColor: theme.colors.line }, statNumber: { color: theme.colors.ink, fontWeight: '900', fontSize: 24 }, statLabel: { color: '#6D8074', fontSize: 11, marginTop: 3 },
+  tip: { flexDirection: 'row', gap: 12, padding: 16, backgroundColor: theme.colors.sunflowerPale, borderRadius: 16, marginTop: 20 }, tipIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.paper }, tipTitle: { color: '#73570C', fontWeight: '900' }, tipText: { color: '#6F5B28', lineHeight: 19, fontSize: 13, marginTop: 3 },
+  add: { flexDirection: 'row', gap: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.leaf, borderRadius: 13, padding: 15, marginTop: 22, minHeight: 52 }, addText: { color: '#FFF', fontWeight: '900', textAlign: 'center' },
+  chatButton: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.colors.paper, borderWidth: 1, borderColor: theme.colors.line, borderRadius: 13, paddingHorizontal: 15, paddingVertical: 13, marginTop: 10, minHeight: 50 }, chatButtonText: { color: theme.colors.leaf, fontWeight: '900', flex: 1 },
 });

@@ -11,6 +11,7 @@ import AddPlantScreen from './src/screens/AddPlantScreen';
 import DiagnosisScreen from './src/screens/DiagnosisScreen';
 import AssistantScreen from './src/screens/AssistantScreen';
 import RemindersScreen from './src/screens/RemindersScreen';
+import CompareScreen from './src/screens/CompareScreen';
 import { RootStackParamList } from './src/types';
 import { getSession } from './src/services/storage';
 import { theme } from './src/theme';
@@ -25,7 +26,7 @@ export default function App() {
   if (!ready) return <View style={styles.loader}><ActivityIndicator size="large" color={theme.colors.leaf} /></View>;
   return <SafeAreaProvider><ImageBackground source={require('./assets/botanical-background.png')} style={styles.background} imageStyle={styles.backgroundImage}><NavigationContainer theme={navigationTheme}><StatusBar style="dark" />
     <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' }, headerStyle: { backgroundColor: theme.colors.paper }, headerTintColor: theme.colors.ink, headerTitleStyle: { fontWeight: '800' } }}>
-      {signedIn ? <><Stack.Screen name="Main">{() => <MainTabs onSignOut={() => setSignedIn(false)} />}</Stack.Screen><Stack.Screen name="Details" component={DetailsScreen} options={{ headerShown: true, title: 'Подробнее' }} /><Stack.Screen name="Diagnosis" component={DiagnosisScreen} options={{ headerShown: true, title: 'AI-анализ' }} /><Stack.Screen name="Assistant" component={AssistantScreen} options={{ headerShown: true, title: 'AI-чат' }} /><Stack.Screen name="Reminders" component={RemindersScreen} options={{ headerShown: true, title: 'Напоминания' }} /><Stack.Screen name="AddPlant" component={AddPlantScreen} options={{ headerShown: true, title: 'Новое наблюдение' }} /></> : <Stack.Screen name="Login">{() => <LoginScreen onSuccess={() => setSignedIn(true)} />}</Stack.Screen>}
+      {signedIn ? <><Stack.Screen name="Main">{() => <MainTabs onSignOut={() => setSignedIn(false)} />}</Stack.Screen><Stack.Screen name="Details" component={DetailsScreen} options={{ headerShown: true, title: 'Подробнее' }} /><Stack.Screen name="Diagnosis" component={DiagnosisScreen} options={{ headerShown: true, title: 'AI-анализ' }} /><Stack.Screen name="Assistant" component={AssistantScreen} options={{ headerShown: true, title: 'AI-чат' }} /><Stack.Screen name="Reminders" component={RemindersScreen} options={{ headerShown: true, title: 'Напоминания' }} /><Stack.Screen name="Compare" component={CompareScreen} options={{ headerShown: true, title: 'Сравнение фото' }} /><Stack.Screen name="AddPlant" component={AddPlantScreen} options={{ headerShown: true, title: 'Новое наблюдение' }} /></> : <Stack.Screen name="Login">{() => <LoginScreen onSuccess={() => setSignedIn(true)} />}</Stack.Screen>}
     </Stack.Navigator>
   </NavigationContainer></ImageBackground></SafeAreaProvider>;
 }

@@ -8,5 +8,5 @@ export type AssistantAction = { type: 'none' | 'navigate' | 'create_plant' | 'cr
 export type AssistantResponse = { reply: string; action: AssistantAction };
 export type Disease = { id: string; name: string; category: string; symptoms: string; advice: string; color: string; icon: string; accent?: string };
 export type Service = { id: string; title: string; description: string; icon: string; color: string; accent?: string; route?: 'Details' };
-export type RootStackParamList = { Login: undefined; Main: undefined; Details: { title: string; body: string; icon: string }; Diagnosis: undefined; Assistant: undefined; Reminders: undefined; AddPlant: { plantId?: string; initialImageUri?: string; initialNote?: string } | undefined };
+export type RootStackParamList = { Login: undefined; Main: undefined; Details: { title: string; body: string; icon: string }; Diagnosis: undefined; Assistant: undefined; Reminders: undefined; Compare: undefined; AddPlant: { plantId?: string; initialImageUri?: string; initialNote?: string } | undefined };
 export type TabParamList = { Главная: undefined; Сервисы: undefined; Растения: undefined; Каталог: undefined; Профиль: undefined };

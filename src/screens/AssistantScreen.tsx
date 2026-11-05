@@ -155,7 +155,7 @@ function actionDescription(action: AssistantAction) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: 'rgba(255,252,240,.28)' },
+  screen: { flex: 1, backgroundColor: 'rgba(248,250,246,.28)' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 16, paddingVertical: 11, backgroundColor: theme.colors.paper, borderBottomWidth: 1, borderBottomColor: theme.colors.line },
   avatar: { width: 39, height: 39, borderRadius: 13, backgroundColor: theme.colors.leaf, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { color: theme.colors.ink, fontSize: 16, fontWeight: '900' }, headerSub: { color: '#728178', fontSize: 11, marginTop: 2 }, headerButton: { padding: 7, minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
