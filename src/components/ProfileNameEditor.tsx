@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { getProfile, saveProfile, UserProfile } from '../services/storage';
+import { theme } from '../theme';
 
 function initialName(profile: UserProfile) {
   return profile.displayName?.trim() || profile.login.trim() || profile.email.split('@')[0] || 'Пользователь';
@@ -56,14 +57,14 @@ export function ProfileInitials() {
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', marginTop: 13, width: '100%' },
-  name: { color: '#174734', fontSize: 25, fontWeight: '900' },
+  name: { color: theme.colors.ink, fontSize: 25, fontWeight: '900' },
   initials: { color: '#FFF', fontSize: 29, fontWeight: '900' },
-  editButton: { paddingHorizontal: 10, paddingVertical: 8, marginTop: 3 },
-  editText: { color: '#237A57', fontWeight: '700', fontSize: 13 },
-  input: { width: '100%', marginTop: 12, borderWidth: 1, borderColor: '#C9DDD0', borderRadius: 13, padding: 12, color: '#173C2A', backgroundColor: '#FFF' },
+  editButton: { paddingHorizontal: 12, paddingVertical: 9, marginTop: 3, minHeight: 40, justifyContent: 'center' },
+  editText: { color: theme.colors.leaf, fontWeight: '900', fontSize: 13 },
+  input: { width: '100%', marginTop: 12, borderWidth: 1, borderColor: '#D8DECD', borderRadius: 11, padding: 12, color: theme.colors.ink, backgroundColor: theme.colors.paper },
   actions: { flexDirection: 'row', gap: 10, marginTop: 10 },
-  save: { backgroundColor: '#237A57', borderRadius: 11, paddingHorizontal: 17, paddingVertical: 10 },
-  saveText: { color: '#FFF', fontWeight: '800' },
-  cancel: { borderWidth: 1, borderColor: '#C9DDD0', borderRadius: 11, paddingHorizontal: 17, paddingVertical: 10 },
-  cancelText: { color: '#506B5A', fontWeight: '700' },
+  save: { backgroundColor: theme.colors.leaf, borderRadius: 9, paddingHorizontal: 17, paddingVertical: 11, minHeight: 42, justifyContent: 'center' },
+  saveText: { color: '#FFF', fontWeight: '900' },
+  cancel: { borderWidth: 1, borderColor: '#D8DECD', borderRadius: 9, paddingHorizontal: 17, paddingVertical: 11, minHeight: 42, justifyContent: 'center' },
+  cancelText: { color: '#506B5A', fontWeight: '800' },
 });

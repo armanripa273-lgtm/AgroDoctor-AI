@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { StyleProp, StyleSheet, Text, TextStyle } from 'react-native';
 import { getProfile } from '../services/storage';
+import { theme } from '../theme';
 
 function profileName(login: string, email: string) {
   return login.trim() || email.split('@')[0] || 'пользователь';
@@ -23,4 +24,4 @@ export function CurrentUserName({ style }: { style?: StyleProp<TextStyle> }) {
   return <Text style={style}>{name}</Text>;
 }
 
-const styles = StyleSheet.create({ greeting: { color: '#6D8074', fontWeight: '600', fontSize: 15 } });
+const styles = StyleSheet.create({ greeting: { color: theme.colors.inkSoft, fontWeight: '700', fontSize: 15 } });

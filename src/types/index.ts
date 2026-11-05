@@ -1,9 +1,12 @@
 export type Plant = { id: string; name: string; species: string; imageUri?: string; createdAt: string; location?: string };
 export type Observation = { id: string; plantId: string; date: string; note: string; imageUri?: string; location?: string; condition: 'Наблюдение' | 'Стабильно' | 'Требует внимания' };
 export type PlantReminder = { id: string; plantId?: string; plantName?: string; title: string; body: string; scheduledAt: string; repeatDaily: boolean; notificationId: string; active: boolean };
+export type PlantCareInsight = { plantId: string; plantName: string; status: 'ok' | 'watch' | 'attention'; observationDate: string; explanation: string; recommendation: string };
+export type PlantCareReview = { summary: string; insights: PlantCareInsight[] };
+export type PlantCareReviewCache = { signature: string; checkedAt: string; review: PlantCareReview };
 export type AssistantAction = { type: 'none' | 'navigate' | 'create_plant' | 'create_reminder' | 'save_observation' | 'update_plant' | 'delete_plant'; screen?: 'Главная' | 'Сервисы' | 'Растения' | 'Каталог' | 'Профиль' | 'Напоминания' | 'AI-анализ'; plantId?: string; plantName?: string; name?: string; species?: string; title?: string; body?: string; note?: string; condition?: Observation['condition']; minutesFromNow?: number; dailyHour?: number; dailyMinute?: number };
 export type AssistantResponse = { reply: string; action: AssistantAction };
-export type Disease = { id: string; name: string; category: string; symptoms: string; advice: string; color: string; icon: string };
-export type Service = { id: string; title: string; description: string; icon: string; color: string; route?: 'Details' };
+export type Disease = { id: string; name: string; category: string; symptoms: string; advice: string; color: string; icon: string; accent?: string };
+export type Service = { id: string; title: string; description: string; icon: string; color: string; accent?: string; route?: 'Details' };
 export type RootStackParamList = { Login: undefined; Main: undefined; Details: { title: string; body: string; icon: string }; Diagnosis: undefined; Assistant: undefined; Reminders: undefined; AddPlant: { plantId?: string; initialImageUri?: string; initialNote?: string } | undefined };
 export type TabParamList = { Главная: undefined; Сервисы: undefined; Растения: undefined; Каталог: undefined; Профиль: undefined };

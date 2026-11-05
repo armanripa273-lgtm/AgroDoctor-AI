@@ -13,19 +13,20 @@ import AssistantScreen from './src/screens/AssistantScreen';
 import RemindersScreen from './src/screens/RemindersScreen';
 import { RootStackParamList } from './src/types';
 import { getSession } from './src/services/storage';
+import { theme } from './src/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const navigationTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: 'transparent' } };
+const navigationTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: 'transparent', card: theme.colors.paper, text: theme.colors.ink, border: theme.colors.line, primary: theme.colors.leaf } };
 
 export default function App() {
   const [ready, setReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => { getSession().then(value => { setSignedIn(value); setReady(true); }); }, []);
-  if (!ready) return <View style={styles.loader}><ActivityIndicator size="large" color="#237A57" /></View>;
+  if (!ready) return <View style={styles.loader}><ActivityIndicator size="large" color={theme.colors.leaf} /></View>;
   return <SafeAreaProvider><ImageBackground source={require('./assets/botanical-background.png')} style={styles.background} imageStyle={styles.backgroundImage}><NavigationContainer theme={navigationTheme}><StatusBar style="dark" />
-    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-      {signedIn ? <><Stack.Screen name="Main">{() => <MainTabs onSignOut={() => setSignedIn(false)} />}</Stack.Screen><Stack.Screen name="Details" component={DetailsScreen} options={{ headerShown: true, title: 'Подробнее', headerTintColor: '#174734' }} /><Stack.Screen name="Diagnosis" component={DiagnosisScreen} options={{ headerShown: true, title: 'AI-анализ', headerTintColor: '#174734' }} /><Stack.Screen name="Assistant" component={AssistantScreen} options={{ headerShown: true, title: 'AI-чат', headerTintColor: '#174734' }} /><Stack.Screen name="Reminders" component={RemindersScreen} options={{ headerShown: true, title: 'Напоминания', headerTintColor: '#174734' }} /><Stack.Screen name="AddPlant" component={AddPlantScreen} options={{ headerShown: true, title: 'Новое наблюдение', headerTintColor: '#174734' }} /></> : <Stack.Screen name="Login">{() => <LoginScreen onSuccess={() => setSignedIn(true)} />}</Stack.Screen>}
+    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' }, headerStyle: { backgroundColor: theme.colors.paper }, headerTintColor: theme.colors.ink, headerTitleStyle: { fontWeight: '800' } }}>
+      {signedIn ? <><Stack.Screen name="Main">{() => <MainTabs onSignOut={() => setSignedIn(false)} />}</Stack.Screen><Stack.Screen name="Details" component={DetailsScreen} options={{ headerShown: true, title: 'Подробнее' }} /><Stack.Screen name="Diagnosis" component={DiagnosisScreen} options={{ headerShown: true, title: 'AI-анализ' }} /><Stack.Screen name="Assistant" component={AssistantScreen} options={{ headerShown: true, title: 'AI-чат' }} /><Stack.Screen name="Reminders" component={RemindersScreen} options={{ headerShown: true, title: 'Напоминания' }} /><Stack.Screen name="AddPlant" component={AddPlantScreen} options={{ headerShown: true, title: 'Новое наблюдение' }} /></> : <Stack.Screen name="Login">{() => <LoginScreen onSuccess={() => setSignedIn(true)} />}</Stack.Screen>}
     </Stack.Navigator>
   </NavigationContainer></ImageBackground></SafeAreaProvider>;
 }
-const styles = StyleSheet.create({ background: { flex: 1 }, backgroundImage: { opacity: .82 }, loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F8F1' } });
+const styles = StyleSheet.create({ background: { flex: 1, backgroundColor: theme.colors.canvas }, backgroundImage: { opacity: 1 }, loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.canvas } });

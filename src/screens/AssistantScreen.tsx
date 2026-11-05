@@ -6,8 +6,10 @@ import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressa
 import { diseases } from '../data/content';
 import { askAgroAssistant, ChatTurn } from '../services/agroAssistant';
 import { createLocalReminder, cancelLocalReminder } from '../services/reminders';
+import { refreshPlantCareReview } from '../services/careReview';
 import { deletePlant, getObservations, getPlants, getReminders, removeReminder, saveObservation, savePlant, updatePlant } from '../services/storage';
 import { AssistantAction, AssistantResponse, Observation, Plant, PlantReminder } from '../types';
+import { theme } from '../theme';
 
 type Message = { id: string; role: 'user' | 'assistant'; text: string; action?: AssistantAction; completed?: boolean; imageUri?: string };
 type AttachedPhoto = { uri: string; base64: string };
@@ -87,6 +89,7 @@ export default function AssistantScreen() {
         if (!plant) throw new Error('Не удалось определить растение. Попроси ассистента уточнить его название.');
         const observation: Observation = { id: `obs-${Date.now()}`, plantId: plant.id, date: new Date().toISOString(), note: action.note || 'Запись добавлена через AI-чат.', condition: action.condition || 'Наблюдение' };
         await saveObservation(observation);
+        void Promise.all([getPlants(), getObservations()]).then(([plants, observations]) => refreshPlantCareReview(plants, observations)).catch(() => undefined);
         Alert.alert('Сохранено', `Добавил наблюдение для «${plant.name}».`);
       } else if (action.type === 'update_plant') {
         const plant = findPlant(action, await getPlants());
@@ -118,7 +121,7 @@ export default function AssistantScreen() {
   };
 
   return <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
-    <View style={styles.header}><View style={styles.avatar}><Ionicons name="sparkles" color="#FFF" size={20} /></View><View style={{ flex: 1 }}><Text style={styles.headerTitle}>AgroDoctor AI</Text><Text style={styles.headerSub}>Помощник по вашим растениям</Text></View><Pressable onPress={() => navigation.navigate('Reminders')} style={styles.headerButton}><Ionicons name="notifications-outline" size={22} color="#237A57" /></Pressable></View>
+    <View style={styles.header}><View style={styles.avatar}><Ionicons name="leaf" color="#FFF" size={20} /></View><View style={{ flex: 1 }}><Text style={styles.headerTitle}>AgroDoctor AI</Text><Text style={styles.headerSub}>Помощник по вашим растениям</Text></View><Pressable onPress={() => navigation.navigate('Reminders')} style={styles.headerButton}><Ionicons name="notifications-outline" size={22} color={theme.colors.plum} /></Pressable></View>
     <ScrollView ref={scrollRef} contentContainerStyle={styles.messages} keyboardShouldPersistTaps="handled">
       <Text style={styles.privacy}>Ответы создаёт Gemini. Имена растений, заметки и каталог отправляются в Google для ответа; email, пароль и GPS не передаются.</Text>
       {messages.map(message => <View key={message.id} style={[styles.messageRow, message.role === 'user' && styles.userRow]}>
@@ -128,12 +131,12 @@ export default function AssistantScreen() {
           {message.action && <View style={styles.action}><Text style={styles.actionTitle}>{actionDescription(message.action)}</Text>{message.completed ? <Text style={styles.completed}>Готово</Text> : <Pressable onPress={() => confirmAction(message)} style={styles.confirm}><Text style={styles.confirmText}>Проверить и подтвердить</Text></Pressable>}</View>}
         </View>
       </View>)}
-      {loading && <View style={[styles.bubble, styles.assistantBubble, styles.loading]}><ActivityIndicator color="#237A57" /><Text style={styles.loadingText}>Смотрю данные…</Text></View>}
+      {loading && <View style={[styles.bubble, styles.assistantBubble, styles.loading]}><ActivityIndicator color={theme.colors.leaf} /><Text style={styles.loadingText}>Смотрю данные…</Text></View>}
       {!!error && <Text style={styles.error}>{error}</Text>}
     </ScrollView>
     {messages.length <= 1 && <View style={styles.quick}><Pressable onPress={() => { void send('Как сейчас дела у моих растений?') }}><Text style={styles.quickChip}>Сводка по растениям</Text></Pressable><Pressable onPress={() => { void send('Напомни полить моё растение завтра в 9:00') }}><Text style={styles.quickChip}>Создать напоминание</Text></Pressable></View>}
     {photo && <View style={styles.attachment}><Image source={{ uri: photo.uri }} style={styles.attachmentImage} /><Text style={styles.attachmentLabel}>Фото добавлено</Text><Pressable onPress={() => setPhoto(null)}><Ionicons name="close-circle" size={22} color="#728178" /></Pressable></View>}
-    <View style={styles.composer}><Pressable onPress={attachPhoto} style={styles.attachButton}><Ionicons name="camera-outline" size={22} color="#237A57" /></Pressable><TextInput value={draft} onChangeText={setDraft} placeholder="Спроси про растения или уход…" style={styles.input} multiline maxLength={1000} /><Pressable onPress={() => { void send(); }} disabled={loading || (!draft.trim() && !photo)} style={[styles.sendButton, (loading || (!draft.trim() && !photo)) && styles.sendDisabled]}><Ionicons name="arrow-up" size={22} color="#FFF" /></Pressable></View>
+    <View style={styles.composer}><Pressable onPress={attachPhoto} style={styles.attachButton}><Ionicons name="camera-outline" size={22} color={theme.colors.leaf} /></Pressable><TextInput value={draft} onChangeText={setDraft} placeholder="Спроси про растения или уход…" style={styles.input} multiline maxLength={1000} /><Pressable onPress={() => { void send(); }} disabled={loading || (!draft.trim() && !photo)} style={[styles.sendButton, (loading || (!draft.trim() && !photo)) && styles.sendDisabled]}><Ionicons name="arrow-up" size={22} color="#FFF" /></Pressable></View>
   </KeyboardAvoidingView>;
 }
 
@@ -152,5 +155,18 @@ function actionDescription(action: AssistantAction) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: 'rgba(245,248,241,.75)' }, header: { flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E1EAE3' }, avatar: { width: 38, height: 38, borderRadius: 13, backgroundColor: '#237A57', alignItems: 'center', justifyContent: 'center' }, headerTitle: { color: '#174734', fontSize: 16, fontWeight: '900' }, headerSub: { color: '#728178', fontSize: 11, marginTop: 2 }, headerButton: { padding: 7 }, messages: { padding: 15, gap: 12, flexGrow: 1 }, privacy: { color: '#697A70', fontSize: 11, lineHeight: 16, backgroundColor: 'rgba(255,255,255,.8)', borderRadius: 12, padding: 11, marginBottom: 2 }, messageRow: { alignItems: 'flex-start' }, userRow: { alignItems: 'flex-end' }, bubble: { maxWidth: '88%', borderRadius: 18, padding: 13 }, assistantBubble: { backgroundColor: '#FFF', borderTopLeftRadius: 5, borderWidth: 1, borderColor: '#E2EBE4' }, userBubble: { backgroundColor: '#237A57', borderTopRightRadius: 5 }, messageText: { color: '#344D3E', fontSize: 14, lineHeight: 20 }, userText: { color: '#FFF' }, messagePhoto: { width: 210, height: 150, borderRadius: 12, marginBottom: 8 }, action: { borderTopWidth: 1, borderTopColor: '#E2EBE4', marginTop: 10, paddingTop: 10 }, actionTitle: { color: '#174734', fontWeight: '800', fontSize: 12, lineHeight: 17 }, confirm: { marginTop: 9, backgroundColor: '#E5F2E9', padding: 10, borderRadius: 10, alignItems: 'center' }, confirmText: { color: '#237A57', fontWeight: '800', fontSize: 12 }, completed: { color: '#237A57', fontWeight: '800', marginTop: 8 }, loading: { flexDirection: 'row', alignItems: 'center', gap: 9 }, loadingText: { color: '#607568', fontSize: 13 }, error: { color: '#B63732', backgroundColor: '#FFF', padding: 12, borderRadius: 12 }, quick: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 14, paddingBottom: 9 }, quickChip: { color: '#237A57', backgroundColor: '#E6F2E9', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, fontSize: 12, fontWeight: '700' }, attachment: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 7 }, attachmentImage: { width: 38, height: 38, borderRadius: 8 }, attachmentLabel: { color: '#607568', flex: 1, fontSize: 12 }, composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, padding: 10, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#E1EAE3' }, attachButton: { width: 40, height: 42, alignItems: 'center', justifyContent: 'center' }, input: { flex: 1, maxHeight: 95, minHeight: 42, backgroundColor: '#F3F7F3', borderRadius: 16, paddingHorizontal: 13, paddingVertical: 10, color: '#254533' }, sendButton: { width: 40, height: 40, borderRadius: 14, backgroundColor: '#237A57', alignItems: 'center', justifyContent: 'center' }, sendDisabled: { opacity: 0.45 },
+  screen: { flex: 1, backgroundColor: 'rgba(255,252,240,.28)' },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 16, paddingVertical: 11, backgroundColor: theme.colors.paper, borderBottomWidth: 1, borderBottomColor: theme.colors.line },
+  avatar: { width: 39, height: 39, borderRadius: 13, backgroundColor: theme.colors.leaf, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { color: theme.colors.ink, fontSize: 16, fontWeight: '900' }, headerSub: { color: '#728178', fontSize: 11, marginTop: 2 }, headerButton: { padding: 7, minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
+  messages: { padding: 15, gap: 12, flexGrow: 1 },
+  privacy: { color: '#526657', fontSize: 11, lineHeight: 16, backgroundColor: theme.colors.sunflowerPale, borderLeftWidth: 3, borderLeftColor: theme.colors.sunflower, borderRadius: 10, padding: 11, marginBottom: 2 },
+  messageRow: { alignItems: 'flex-start' }, userRow: { alignItems: 'flex-end' }, bubble: { maxWidth: '88%', borderRadius: 16, padding: 13 },
+  assistantBubble: { backgroundColor: theme.colors.paper, borderTopLeftRadius: 5, borderWidth: 1, borderColor: theme.colors.line }, userBubble: { backgroundColor: theme.colors.leafDeep, borderTopRightRadius: 5 },
+  messageText: { color: '#344D3E', fontSize: 14, lineHeight: 20 }, userText: { color: '#FFF' }, messagePhoto: { width: 210, height: 150, borderRadius: 10, marginBottom: 8 },
+  action: { borderTopWidth: 1, borderTopColor: theme.colors.line, marginTop: 10, paddingTop: 10 }, actionTitle: { color: theme.colors.ink, fontWeight: '800', fontSize: 12, lineHeight: 17 }, confirm: { marginTop: 9, backgroundColor: theme.colors.cucumberPale, padding: 10, borderRadius: 9, alignItems: 'center', minHeight: 40, justifyContent: 'center' }, confirmText: { color: theme.colors.leaf, fontWeight: '900', fontSize: 12 }, completed: { color: theme.colors.leaf, fontWeight: '900', marginTop: 8 },
+  loading: { flexDirection: 'row', alignItems: 'center', gap: 9 }, loadingText: { color: '#607568', fontSize: 13 }, error: { color: theme.colors.danger, backgroundColor: theme.colors.paper, padding: 12, borderRadius: 11 },
+  quick: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 14, paddingBottom: 9 }, quickChip: { color: '#5E4A0E', backgroundColor: theme.colors.sunflowerPale, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 9, fontSize: 12, fontWeight: '800' },
+  attachment: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 7 }, attachmentImage: { width: 38, height: 38, borderRadius: 8 }, attachmentLabel: { color: '#607568', flex: 1, fontSize: 12 },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, padding: 10, backgroundColor: theme.colors.paper, borderTopWidth: 1, borderTopColor: theme.colors.line }, attachButton: { width: 42, height: 44, alignItems: 'center', justifyContent: 'center' }, input: { flex: 1, maxHeight: 95, minHeight: 44, backgroundColor: '#F2F0E5', borderRadius: 12, paddingHorizontal: 13, paddingVertical: 10, color: theme.colors.ink }, sendButton: { width: 42, height: 42, borderRadius: 12, backgroundColor: theme.colors.tomato, alignItems: 'center', justifyContent: 'center' }, sendDisabled: { opacity: 0.45 },
 });

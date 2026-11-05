@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Observation, Plant, PlantReminder } from '../types';
-const KEYS = { session: '@agro/session', plants: '@agro/plants', observations: '@agro/observations', reminders: '@agro/reminders' };
+import { Observation, Plant, PlantCareReviewCache, PlantReminder } from '../types';
+const KEYS = { session: '@agro/session', plants: '@agro/plants', observations: '@agro/observations', reminders: '@agro/reminders', careReview: '@agro/care_review' };
 export type UserProfile = { login: string; email: string; displayName?: string };
 async function read<T>(key: string, fallback: T): Promise<T> { const raw = await AsyncStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; }
 export const getSession = async () => (await AsyncStorage.getItem(KEYS.session)) === 'true';
@@ -16,3 +16,5 @@ export const saveObservation = async (observation: Observation) => { const all =
 export const getReminders = () => read<PlantReminder[]>(KEYS.reminders, []);
 export const saveReminder = async (reminder: PlantReminder) => { const all = await getReminders(); await AsyncStorage.setItem(KEYS.reminders, JSON.stringify([reminder, ...all])); };
 export const removeReminder = async (reminderId: string) => { const all = await getReminders(); await AsyncStorage.setItem(KEYS.reminders, JSON.stringify(all.filter(reminder => reminder.id !== reminderId))); };
+export const getCareReview = () => read<PlantCareReviewCache | null>(KEYS.careReview, null);
+export const saveCareReview = (review: PlantCareReviewCache) => AsyncStorage.setItem(KEYS.careReview, JSON.stringify(review));
