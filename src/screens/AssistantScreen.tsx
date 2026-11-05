@@ -11,7 +11,7 @@ import { deletePlant, getObservations, getPlants, getReminders, removeReminder, 
 import { AssistantAction, AssistantResponse, Observation, Plant, PlantReminder } from '../types';
 import { theme } from '../theme';
 
-type Message = { id: string; role: 'user' | 'assistant'; text: string; action?: AssistantAction; completed?: boolean; imageUri?: string };
+type Message = { id: string; role: 'user' | 'assistant'; text: string; action?: AssistantAction; completed?: boolean; declined?: boolean; imageUri?: string };
 type AttachedPhoto = { uri: string; base64: string };
 
 export default function AssistantScreen() {
@@ -58,6 +58,9 @@ export default function AssistantScreen() {
       const response = await askAgroAssistant(text || 'Проанализируй признаки растения на фото и подскажи безопасные следующие шаги.', prior, { plants, observations, reminders, diseases }, sentPhoto?.base64);
       setMessages(current => [...current, { id: `assistant-${Date.now()}`, role: 'assistant', text: response.reply, action: response.action.type === 'none' ? undefined : response.action }]);
     } catch (cause) {
+      setMessages(current => current.filter(item => item.id !== userMessage.id));
+      setDraft(current => current || text);
+      setPhoto(sentPhoto);
       setError(cause instanceof Error ? cause.message : 'Не удалось подключиться к помощнику.');
     } finally { setLoading(false); }
   };
@@ -115,7 +118,7 @@ export default function AssistantScreen() {
     if (!action || action.type === 'none') return;
     const description = actionDescription(action);
     Alert.alert('Подтвердить действие?', description, [
-      { text: 'Отмена', style: 'cancel', onPress: () => setMessages(current => current.map(item => item.id === message.id ? { ...item, completed: true } : item)) },
+      { text: 'Отмена', style: 'cancel', onPress: () => setMessages(current => current.map(item => item.id === message.id ? { ...item, declined: true } : item)) },
       { text: action.type === 'delete_plant' ? 'Продолжить' : 'Подтвердить', style: action.type === 'delete_plant' ? 'destructive' : 'default', onPress: () => { void applyAction(message); } },
     ]);
   };
@@ -128,7 +131,7 @@ export default function AssistantScreen() {
         <View style={[styles.bubble, message.role === 'user' ? styles.userBubble : styles.assistantBubble]}>
           {message.imageUri && <Image source={{ uri: message.imageUri }} style={styles.messagePhoto} />}
           {!!message.text && <Text style={[styles.messageText, message.role === 'user' && styles.userText]}>{message.text}</Text>}
-          {message.action && <View style={styles.action}><Text style={styles.actionTitle}>{actionDescription(message.action)}</Text>{message.completed ? <Text style={styles.completed}>Готово</Text> : <Pressable onPress={() => confirmAction(message)} style={styles.confirm}><Text style={styles.confirmText}>Проверить и подтвердить</Text></Pressable>}</View>}
+          {message.action && <View style={styles.action}><Text style={styles.actionTitle}>{actionDescription(message.action)}</Text>{message.completed || message.declined ? <Text style={styles.completed}>{message.declined ? 'Отменено' : 'Готово'}</Text> : <Pressable onPress={() => confirmAction(message)} style={styles.confirm}><Text style={styles.confirmText}>Проверить и подтвердить</Text></Pressable>}</View>}
         </View>
       </View>)}
       {loading && <View style={[styles.bubble, styles.assistantBubble, styles.loading]}><ActivityIndicator color={theme.colors.leaf} /><Text style={styles.loadingText}>Смотрю данные…</Text></View>}
@@ -141,7 +144,10 @@ export default function AssistantScreen() {
 }
 
 function findPlant(action: AssistantAction, plants: Plant[]) {
-  return plants.find(plant => action.plantId && plant.id === action.plantId) || plants.find(plant => action.plantName && plant.name.toLocaleLowerCase('ru').includes(action.plantName.toLocaleLowerCase('ru')));
+  if (action.plantId) return plants.find(plant => plant.id === action.plantId);
+  if (!action.plantName) return undefined;
+  const matches = plants.filter(plant => plant.name.trim().toLocaleLowerCase('ru') === action.plantName!.trim().toLocaleLowerCase('ru'));
+  return matches.length === 1 ? matches[0] : undefined;
 }
 
 function actionDescription(action: AssistantAction) {

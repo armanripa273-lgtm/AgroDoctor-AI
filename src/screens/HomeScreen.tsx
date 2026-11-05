@@ -47,7 +47,7 @@ export default function HomeScreen() {
     </View>
 
     <View style={styles.careCard}>
-      <View style={styles.careHeader}><View style={styles.careIcon}><Ionicons name="sparkles-outline" size={21} color={theme.colors.leafDeep} /></View><View style={styles.careHeaderCopy}><Text style={styles.careTitle}>ИИ-проверка наблюдений</Text><Text style={styles.careCaption}>На основе ваших записей и фото</Text></View><Pressable onPress={() => { void refreshCare(true); }} disabled={careLoading} style={styles.refreshButton} accessibilityLabel="Обновить ИИ-проверку"><Ionicons name="refresh-outline" size={19} color={theme.colors.leafDeep} /></Pressable></View>
+      <View style={styles.careHeader}><View style={styles.careIcon}><Ionicons name="sparkles-outline" size={21} color={theme.colors.leafDeep} /></View><View style={styles.careHeaderCopy}><Text style={styles.careTitle}>ИИ-проверка наблюдений</Text><Text style={styles.careCaption}>{careReview?.photoExamined ? 'По вашим записям и фото' : 'По вашим записям'}</Text></View><Pressable onPress={() => { void refreshCare(true); }} disabled={careLoading} style={styles.refreshButton} accessibilityLabel="Обновить ИИ-проверку"><Ionicons name="refresh-outline" size={19} color={theme.colors.leafDeep} /></Pressable></View>
       <View style={styles.careDivider} />
       {careLoading ? <View style={styles.loadingRow}><ActivityIndicator color={theme.colors.leaf} /><Text style={styles.careBody}>Анализируем сохранённые наблюдения…</Text></View>
         : careError ? <><Text style={styles.careBody}>{careReview?.summary || 'Не удалось обновить сводку.'}</Text><Text style={styles.error}>{careError}</Text></>

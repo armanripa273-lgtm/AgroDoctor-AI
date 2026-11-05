@@ -3,6 +3,7 @@ import { AssistantAction, AssistantResponse, Disease, Observation, Plant, PlantR
 const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY?.trim();
 const MODEL = 'gemini-3.5-flash';
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const IMAGE_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
 
 export type ChatTurn = { role: 'user' | 'model'; text: string };
 type Context = { plants: Plant[]; observations: Observation[]; reminders: PlantReminder[]; diseases: Disease[] };
@@ -40,16 +41,30 @@ const systemPrompt = `Ты AgroDoctor AI — русскоязычный помо
 function validateAction(value: unknown): AssistantAction {
   if (!value || typeof value !== 'object') return { type: 'none' };
   const action = value as Record<string, unknown>;
-  const allowed = ['none', 'navigate', 'create_plant', 'create_reminder', 'save_observation', 'update_plant', 'delete_plant'];
-  if (typeof action.type !== 'string' || !allowed.includes(action.type)) return { type: 'none' };
-  return action as AssistantAction;
+  const allowed = ['none', 'navigate', 'create_plant', 'create_reminder', 'save_observation', 'update_plant', 'delete_plant'] as const;
+  if (typeof action.type !== 'string' || !allowed.includes(action.type as typeof allowed[number])) return { type: 'none' };
+  const read = (key: string, limit = 160) => typeof action[key] === 'string' ? (action[key] as string).trim().slice(0, limit) : undefined;
+  const integer = (key: string) => typeof action[key] === 'number' && Number.isSafeInteger(action[key]) ? action[key] as number : undefined;
+  const type = action.type as AssistantAction['type'];
+  const screen = read('screen') as AssistantAction['screen'];
+  if (type === 'navigate' && !['Главная', 'Сервисы', 'Растения', 'Каталог', 'Профиль', 'Напоминания', 'AI-анализ'].includes(screen ?? '')) return { type: 'none' };
+  const condition = read('condition') as AssistantAction['condition'];
+  return {
+    type,
+    screen: type === 'navigate' ? screen : undefined,
+    plantId: read('plantId'), plantName: read('plantName'), name: read('name'), species: read('species'),
+    title: read('title'), body: read('body', 500), note: read('note', 500),
+    condition: ['Наблюдение', 'Стабильно', 'Требует внимания'].includes(condition ?? '') ? condition : undefined,
+    minutesFromNow: integer('minutesFromNow'), dailyHour: integer('dailyHour'), dailyMinute: integer('dailyMinute'),
+  };
 }
 
 export async function askAgroAssistant(message: string, history: ChatTurn[], context: Context, imageBase64?: string): Promise<AssistantResponse> {
   if (!API_KEY) throw new Error('Gemini не настроен в этой копии приложения.');
+  if (imageBase64 && imageBase64.length > 18 * 1024 * 1024) throw new Error('Фото слишком большое. Выбери снимок меньшего размера.');
   const safeContext = {
     plants: context.plants.map(({ id, name, species }) => ({ id, name, species })),
-    recentObservations: context.observations.slice(0, 20).map(({ plantId, date, note, condition }) => ({ plantId, date, note: note.slice(0, 500), condition })),
+    recentObservations: [...context.observations].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20).map(({ plantId, date, note, condition }) => ({ plantId, date, note: note.slice(0, 500), condition })),
     reminders: context.reminders.filter(item => item.active).map(({ id, plantId, plantName, title, scheduledAt, repeatDaily }) => ({ id, plantId, plantName, title, scheduledAt, repeatDaily })),
     diseaseCatalog: context.diseases.map(({ name, category, symptoms, advice }) => ({ name, category, symptoms, advice })),
     currentLocalTime: new Date().toLocaleString('ru-RU'),
@@ -61,13 +76,19 @@ export async function askAgroAssistant(message: string, history: ChatTurn[], con
       ...(imageBase64 ? [{ inlineData: { mimeType: 'image/jpeg', data: imageBase64 } }] : []),
     ] },
   ];
-  const response = await fetch(ENDPOINT, {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
+  try {
+  const response = await fetch(imageBase64 ? IMAGE_ENDPOINT : ENDPOINT, {
     method: 'POST',
+    signal: controller.signal,
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': API_KEY },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
+      systemInstruction: { parts: [{ text: imageBase64 ? `${systemPrompt}\nДля ответа с приложенным фото верни обычный текст и не предлагай действия с данными.` : systemPrompt }] },
       contents,
-      generationConfig: { temperature: 0.3, maxOutputTokens: 800, responseMimeType: 'application/json', responseJsonSchema: assistantSchema },
+      generationConfig: imageBase64
+        ? { maxOutputTokens: 1600, thinkingConfig: { thinkingLevel: 'low' } }
+        : { maxOutputTokens: 2048, thinkingConfig: { thinkingLevel: 'low' }, responseMimeType: 'application/json', responseJsonSchema: assistantSchema },
     }),
   });
   if (!response.ok) {
@@ -76,9 +97,17 @@ export async function askAgroAssistant(message: string, history: ChatTurn[], con
     throw new Error(`Gemini временно недоступен (HTTP ${response.status}).`);
   }
   const payload: any = await response.json();
+  if (payload.candidates?.[0]?.finishReason === 'MAX_TOKENS') throw new Error('Gemini не уместил ответ. Спроси короче или начни новый вопрос.');
   const text = payload.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? '').join('').trim();
   if (!text) throw new Error('Gemini не сформировал ответ. Попробуй переформулировать вопрос.');
-  const parsed = JSON.parse(text) as { reply?: unknown; action?: unknown };
+  if (imageBase64) return { reply: text, action: { type: 'none' } };
+  let parsed: { reply?: unknown; action?: unknown };
+  try { parsed = JSON.parse(text); } catch { throw new Error('Gemini вернул неполный ответ. Повтори вопрос.'); }
   if (typeof parsed.reply !== 'string') throw new Error('Gemini вернул ответ в неизвестном формате.');
   return { reply: parsed.reply, action: validateAction(parsed.action) };
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error('Gemini отвечает слишком долго. Проверь интернет и попробуй снова.');
+    if (error instanceof TypeError) throw new Error('Нет соединения с Gemini. Проверь интернет.');
+    throw error;
+  } finally { clearTimeout(timeout); }
 }

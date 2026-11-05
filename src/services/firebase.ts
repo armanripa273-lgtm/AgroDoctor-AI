@@ -29,6 +29,8 @@ if (firebaseConfigured) {
   }
 }
 
+export async function logoutFirebase() { if (auth) await signOut(auth); }
+
 export async function registerAndSendVerification(email: string, password: string) {
   if (!auth) throw new Error('Firebase ещё не настроен. Используйте деморежим или добавьте конфигурацию Firebase.');
   try {

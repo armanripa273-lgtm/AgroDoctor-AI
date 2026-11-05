@@ -65,7 +65,7 @@ export default function DiagnosisScreen({ navigation }: Props) {
 
   const saveAsObservation = () => {
     if (!photo || !analysis) return;
-    const aiNote = `AI-подсказка (не окончательный диагноз): ${analysis.summary}\nВозможные причины: ${analysis.possibleCauses.join('; ') || 'не определены'}.`;
+    const aiNote = `AI-подсказка (не окончательный диагноз): ${analysis.summary}\nСледующие шаги: ${analysis.recommendations.join('; ') || 'уточните симптомы'}.`;
     navigation.navigate('AddPlant', { initialImageUri: photo.uri, initialNote: [notes.trim(), aiNote].filter(Boolean).join('\n\n') });
   };
 
