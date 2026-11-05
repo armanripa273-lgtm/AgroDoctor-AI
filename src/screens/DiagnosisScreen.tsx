@@ -70,19 +70,22 @@ export default function DiagnosisScreen({ navigation }: Props) {
   };
 
   return <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
-    <View style={styles.intro}><View style={styles.introIcon}><Ionicons name="scan-outline" size={22} color={theme.colors.tomato} /></View><View style={styles.introBody}><Text style={styles.kicker}>GEMINI · ФОТО И СИМПТОМЫ</Text><Text style={styles.title}>AI-анализ растения</Text><Text style={styles.subtitle}>Добавь снимок и отметь признаки, которые заметил.</Text></View></View>
-    <Text style={styles.disclaimer}>AI-подсказка может ошибаться и не заменяет диагноз специалиста. Фото отправится в Gemini только после нажатия «Проанализировать».</Text>
+    <View style={styles.modeRow}><View style={styles.modePill}><Ionicons name="sparkles-outline" size={16} color="#FFF" /><Text style={styles.modeText}>GEMINI · ФОТОРАЗБОР</Text></View><Text style={styles.modeHint}>AI-подсказка</Text></View>
+    <Text style={styles.title}>Анализ растения <Ionicons name="leaf-outline" size={27} color={theme.colors.tomato} /></Text>
+    <Text style={styles.subtitle}>Сфотографируйте лист, стебель или плод. Расскажите, какие изменения вы заметили.</Text>
+    <View style={styles.photoTip}><View style={styles.photoTipIcon}><Ionicons name="bulb-outline" size={22} color="#A74427" /></View><View style={{ flex: 1 }}><Text style={styles.photoTipTitle}>Совет перед съёмкой</Text><Text style={styles.photoTipText}>Снимайте с двух сторон при дневном свете. Чёткое фото поможет заметить больше признаков.</Text></View></View>
     {!geminiConfigured && <Text style={styles.warning}>Ключ Gemini не настроен в этой копии приложения. Добавьте EXPO_PUBLIC_GEMINI_API_KEY в .env.local и перезапустите Expo.</Text>}
 
-    <Text style={styles.label}>Фотография растения</Text>
-    <View style={styles.photoBox}>
-      {photo ? <Image source={{ uri: photo.uri }} style={styles.photo} /> : <><View style={styles.cameraMark}><Ionicons name="leaf-outline" size={30} color={theme.colors.leaf} /></View><Text style={styles.photoHint}>Фото листьев, стебля или плодов</Text><Text style={styles.photoSubhint}>Снимай при хорошем освещении</Text></>}
+    <View style={styles.photoCard}><View style={styles.photoBox}>
+      {photo ? <Image source={{ uri: photo.uri }} style={styles.photo} /> : <><View style={styles.scanFrame}><View style={styles.cameraMark}><Ionicons name="scan-outline" size={31} color={theme.colors.leafDeep} /></View></View><Text style={styles.photoHint}>Ваш снимок появится здесь</Text><Text style={styles.photoSubhint}>Камера или галерея</Text></>}
     </View>
     <View style={styles.photoActions}><Pressable style={styles.cameraButton} onPress={() => { void pickPhoto('camera'); }} accessibilityRole="button"><Ionicons name="camera-outline" size={19} color="#FFF" /><Text style={styles.cameraButtonText}>{photo ? 'Сделать фото' : 'Камера'}</Text></Pressable><Pressable style={styles.galleryButton} onPress={() => { void pickPhoto('gallery'); }} accessibilityRole="button"><Ionicons name="images-outline" size={19} color={theme.colors.leaf} /><Text style={styles.galleryButtonText}>{photo ? 'Другое фото' : 'Галерея'}</Text></Pressable></View>
+    </View>
 
     <View style={styles.symptomHeading}><Text style={styles.label}>Что вы заметили?</Text><Text style={styles.optional}>необязательно</Text></View>
-    <View style={styles.symptomChips}>{symptomOptions.map(symptom => { const active = selectedSymptoms.includes(symptom); return <Pressable key={symptom} onPress={() => toggleSymptom(symptom)} style={[styles.symptomChip, active && styles.symptomChipActive]}><Ionicons name={active ? 'checkmark-circle' : 'add-circle-outline'} size={16} color={active ? '#FFF' : theme.colors.leaf} /><Text style={[styles.symptomText, active && styles.symptomTextActive]}>{symptom}</Text></Pressable>; })}</View>
     <TextInput value={notes} onChangeText={value => { setNotes(value); setAnalysis(null); }} placeholder="Например, желтеют нижние листья, полив раз в неделю" multiline maxLength={500} style={styles.input} />
+    <View style={styles.symptomChips}>{symptomOptions.map(symptom => { const active = selectedSymptoms.includes(symptom); return <Pressable key={symptom} onPress={() => toggleSymptom(symptom)} style={[styles.symptomChip, active && styles.symptomChipActive]}><Ionicons name={active ? 'checkmark-circle' : 'add-circle-outline'} size={16} color={active ? '#FFF' : theme.colors.leaf} /><Text style={[styles.symptomText, active && styles.symptomTextActive]}>{symptom}</Text></Pressable>; })}</View>
+    <Text style={styles.disclaimer}>Фото отправится в Gemini только после нажатия кнопки ниже. AI-подсказка может ошибаться и не заменяет диагноз специалиста.</Text>
 
     <Pressable onPress={() => { void analyze(); }} disabled={!photo || !geminiConfigured || loading} style={[styles.button, (!photo || !geminiConfigured || loading) && styles.buttonDisabled]} accessibilityRole="button">
       {loading ? <ActivityIndicator color="#FFF" /> : <><Ionicons name="scan-outline" size={20} color="#FFF" /><Text style={styles.buttonText}>Проанализировать фото</Text></>}
@@ -111,23 +114,26 @@ function ResultList({ title, items }: { title: string; items: string[] }) {
 }
 
 const styles = StyleSheet.create({
-  page: { padding: 20, paddingBottom: 42, backgroundColor: 'rgba(248,250,246,.34)', flexGrow: 1 },
+  page: { padding: 20, paddingBottom: 42, backgroundColor: 'rgba(247,249,245,.84)', flexGrow: 1 },
+  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 17 }, modePill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13, paddingVertical: 8, borderRadius: 20, backgroundColor: theme.colors.leafDeep }, modeText: { color: '#FFF', fontSize: 10, fontWeight: '900', letterSpacing: .5 }, modeHint: { color: theme.colors.muted, fontSize: 11, fontWeight: '700' },
   intro: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 }, introIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: theme.colors.tomatoPale },
   introBody: { flex: 1 },
   kicker: { color: theme.colors.tomato, fontSize: 9, letterSpacing: .9, fontWeight: '900', marginBottom: 4 },
-  title: { color: theme.colors.ink, fontSize: 26, fontWeight: '900' },
-  subtitle: { color: theme.colors.inkSoft, lineHeight: 20, marginTop: 5 },
-  disclaimer: { backgroundColor: theme.colors.sunflowerPale, borderLeftWidth: 3, borderLeftColor: theme.colors.sunflower, borderRadius: 12, color: '#725A15', padding: 14, lineHeight: 20, marginTop: 17 },
+  title: { color: theme.colors.ink, fontFamily: 'serif', fontSize: 30, lineHeight: 38, fontWeight: 'bold' },
+  subtitle: { color: theme.colors.inkSoft, lineHeight: 21, fontSize: 13, marginTop: 8 },
+  photoTip: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: '#FFDBCF', borderRadius: 16, padding: 15, marginTop: 21, marginBottom: 20 }, photoTipIcon: { width: 39, height: 39, borderRadius: 20, backgroundColor: '#FFC1AA', alignItems: 'center', justifyContent: 'center' }, photoTipTitle: { color: theme.colors.ink, fontFamily: 'serif', fontWeight: 'bold', fontSize: 16 }, photoTipText: { color: '#783D29', fontSize: 12, lineHeight: 18, marginTop: 5 },
+  disclaimer: { backgroundColor: '#EFF2EE', borderRadius: 12, color: theme.colors.inkSoft, padding: 13, lineHeight: 18, fontSize: 11, marginTop: 5 },
   warning: { backgroundColor: theme.colors.dangerPale, borderRadius: 13, color: theme.colors.danger, padding: 14, lineHeight: 20, marginTop: 12 },
   label: { color: theme.colors.ink, fontWeight: '900', marginTop: 19, marginBottom: 9 },
-  photoBox: { height: 210, backgroundColor: theme.colors.cucumberPale, borderRadius: 16, borderWidth: 1, borderColor: '#B8D6A0', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  photo: { width: '100%', height: '100%' }, cameraMark: { width: 54, height: 54, borderRadius: 18, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
+  photoCard: { backgroundColor: '#FFF', padding: 12, borderRadius: 20, shadowColor: theme.colors.leafDeep, shadowOpacity: .08, shadowRadius: 12, elevation: 3 },
+  photoBox: { height: 245, backgroundColor: '#DDEEE1', borderRadius: 13, borderWidth: 1, borderColor: '#A9D7BA', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  photo: { width: '100%', height: '100%' }, scanFrame: { width: 102, height: 102, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#A2D8B6', borderRadius: 18 }, cameraMark: { width: 68, height: 68, borderRadius: 34, backgroundColor: '#C2E8D0', alignItems: 'center', justifyContent: 'center' },
   photoHint: { color: theme.colors.leafDeep, fontWeight: '900', marginTop: 10 }, photoSubhint: { color: theme.colors.inkSoft, fontSize: 12, marginTop: 4 },
-  photoActions: { flexDirection: 'row', gap: 10, marginTop: 10 }, cameraButton: { flex: 1, minHeight: 48, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, backgroundColor: theme.colors.leafDeep, borderRadius: 11 }, cameraButtonText: { color: '#FFF', fontWeight: '900' }, galleryButton: { flex: 1, minHeight: 48, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, backgroundColor: theme.colors.paper, borderWidth: 1, borderColor: theme.colors.line, borderRadius: 11 }, galleryButtonText: { color: theme.colors.leaf, fontWeight: '900' },
+  photoActions: { flexDirection: 'row', gap: 10, marginTop: 11 }, cameraButton: { flex: 1, minHeight: 48, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, backgroundColor: theme.colors.leafDeep, borderRadius: 11 }, cameraButtonText: { color: '#FFF', fontWeight: '900' }, galleryButton: { flex: 1, minHeight: 48, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, backgroundColor: '#EDF0EC', borderRadius: 11 }, galleryButtonText: { color: theme.colors.leaf, fontWeight: '900' },
   symptomHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, optional: { color: theme.colors.muted, fontSize: 11, marginTop: 18 },
-  symptomChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 11 }, symptomChip: { flexDirection: 'row', gap: 6, alignItems: 'center', paddingHorizontal: 10, minHeight: 38, backgroundColor: '#EBEFEA', borderRadius: 10 }, symptomChipActive: { backgroundColor: theme.colors.leaf }, symptomText: { color: theme.colors.inkSoft, fontSize: 12, fontWeight: '800' }, symptomTextActive: { color: '#FFF' },
-  input: { minHeight: 90, backgroundColor: theme.colors.paper, borderColor: '#D8DECD', borderWidth: 1, borderRadius: 12, padding: 14, textAlignVertical: 'top', color: theme.colors.ink },
-  button: { backgroundColor: theme.colors.leaf, borderRadius: 12, padding: 16, marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, minHeight: 54 },
+  symptomChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 13, marginBottom: 12 }, symptomChip: { flexDirection: 'row', gap: 6, alignItems: 'center', paddingHorizontal: 10, minHeight: 38, backgroundColor: '#EBEFEA', borderRadius: 19 }, symptomChipActive: { backgroundColor: theme.colors.leaf }, symptomText: { color: theme.colors.inkSoft, fontSize: 12, fontWeight: '800' }, symptomTextActive: { color: '#FFF' },
+  input: { minHeight: 100, backgroundColor: theme.colors.paper, borderColor: theme.colors.line, borderWidth: 1, borderRadius: 13, padding: 14, textAlignVertical: 'top', color: theme.colors.ink },
+  button: { backgroundColor: theme.colors.leafDeep, borderRadius: 13, padding: 16, marginTop: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, minHeight: 56 },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: '#FFF', fontWeight: '900', fontSize: 16 },
   error: { color: '#AD3935', marginTop: 14, fontWeight: '700', lineHeight: 20 },

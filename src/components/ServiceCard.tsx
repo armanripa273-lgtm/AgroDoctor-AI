@@ -1,6 +1,25 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Service } from '../types';
 import { Ionicons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { theme } from '../theme';
-export function ServiceCard({ service, width, onPress, featured = false }: { service: Service; width: number; onPress: () => void; featured?: boolean }) { const accent = service.accent ?? theme.colors.leaf; return <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.card, featured && styles.featured, { width, backgroundColor: featured ? theme.colors.leafDeep : service.color, borderColor: featured ? theme.colors.leafDeep : accent + '38', transform: [{ scale: pressed ? .985 : 1 }] }]}><View style={styles.top}><View style={styles.iconAndLabel}><Ionicons name={service.icon as keyof typeof Ionicons.glyphMap} size={featured ? 27 : 28} color={featured ? '#C1E8CF' : accent} />{featured && <Text style={styles.featureLabel}>ФОТО + СИМПТОМЫ</Text>}</View><Ionicons name="arrow-up-outline" style={styles.arrow} size={17} color={featured ? '#FFF' : accent} /></View><View><Text style={[styles.title, featured && styles.featureTitle]}>{service.title}</Text><Text style={[styles.description, featured && styles.featureDescription]}>{service.description}</Text>{featured && <View style={styles.actionLine}><Text style={styles.actionText}>Открыть AI-анализ</Text><Ionicons name="arrow-forward" size={16} color="#FFF" /></View>}</View></Pressable>; }
-const styles = StyleSheet.create({ card: { minHeight: 152, padding: 16, borderRadius: 18, justifyContent: 'space-between', borderWidth: 1 }, featured: { minHeight: 148, padding: 19, marginBottom: 15 }, top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, iconAndLabel: { flexDirection: 'row', alignItems: 'center', gap: 10 }, featureLabel: { color: '#D7F0DF', fontSize: 9, fontWeight: '900', letterSpacing: .9 }, arrow: { transform: [{ rotate: '45deg' }], opacity: .75 }, title: { fontSize: 16, lineHeight: 20, fontWeight: '900', color: theme.colors.ink }, featureTitle: { color: '#FFF', fontSize: 21, lineHeight: 26, marginTop: 5 }, description: { marginTop: 5, fontSize: 12, lineHeight: 17, color: '#48624F' }, featureDescription: { color: '#E0EFE5', fontSize: 13, maxWidth: 310 }, actionLine: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 12 }, actionText: { color: '#FFF', fontWeight: '900', fontSize: 12 } });
+import { Service } from '../types';
+
+export function ServiceCard({ service, width, onPress, wide = false }: { service: Service; width: number; onPress: () => void; wide?: boolean }) {
+  const accent = service.accent ?? theme.colors.leaf;
+  return <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={service.title} style={({ pressed }) => [styles.card, wide && styles.wide, { width, backgroundColor: service.color, opacity: pressed ? .8 : 1 }]}>
+    <View style={[styles.iconBox, wide && styles.wideIcon]}><Ionicons name={service.icon as keyof typeof Ionicons.glyphMap} size={25} color={accent} /></View>
+    <View style={wide ? styles.wideCopy : styles.copy}><Text style={styles.title}>{service.title}</Text><Text numberOfLines={2} style={[styles.description, { color: accent }]}>{service.description}</Text></View>
+    <View style={styles.arrow}><Ionicons name="arrow-up-outline" size={17} color={theme.colors.ink} style={styles.arrowIcon} /></View>
+    {service.id === 'diagnosis' && !wide && <Text style={[styles.badge, { color: accent }]}>GEMINI</Text>}
+  </Pressable>;
+}
+
+const styles = StyleSheet.create({
+  card: { minHeight: 178, borderRadius: 24, padding: 16, overflow: 'hidden', justifyContent: 'space-between' },
+  wide: { minHeight: 104, flexDirection: 'row', alignItems: 'center', gap: 13, justifyContent: 'flex-start' },
+  iconBox: { width: 48, height: 48, borderRadius: 15, backgroundColor: 'rgba(255,255,255,.84)', alignItems: 'center', justifyContent: 'center' }, wideIcon: { width: 52, height: 52 },
+  copy: { paddingTop: 18 }, wideCopy: { flex: 1 },
+  title: { color: theme.colors.ink, fontFamily: 'serif', fontWeight: 'bold', fontSize: 18, lineHeight: 22 },
+  description: { fontSize: 11, lineHeight: 16, marginTop: 5 },
+  arrow: { position: 'absolute', top: 16, right: 16, width: 29, height: 29, backgroundColor: 'rgba(255,255,255,.72)', borderRadius: 15, alignItems: 'center', justifyContent: 'center' }, arrowIcon: { transform: [{ rotate: '45deg' }] },
+  badge: { position: 'absolute', top: 62, left: 16, fontSize: 9, fontWeight: '900', letterSpacing: .8 },
+});
